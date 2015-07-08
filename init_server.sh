@@ -1,0 +1,2 @@
+source devel/setup.bash
+rosrun joystick_turtle joystick_turtlesim_server
