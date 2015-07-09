@@ -47,9 +47,9 @@ void manage_feedback (const joystick_turtle::Cmd_vibrations cmd){
 	if (cmd.vib_type==TYPE_JERK && cmd.vib_backwards==true && cmd.vib_forwards==true){
 		dxl.setTorqueLimit(ID_LINEAR,cmd.vib_force_forwards);
 		if (dxl.readCurrentLoad(ID_LINEAR) > 1023){
-			dxl.setGoalPosition(ID_LINEAR,POS_INIT-BLOCK_DIST,HIGH_SPEED);
-			dxl.setGoalPosition(ID_ANGULAR,POS_INIT+BLOCK_DIST);
+			dxl.setGoalPosition(ID_LINEAR,POS_INIT+BLOCK_DIST,HIGH_SPEED);
 			dxl.setGoalPosition(ID_ANGULAR,POS_INIT-BLOCK_DIST);
+			dxl.setGoalPosition(ID_ANGULAR,POS_INIT+BLOCK_DIST);
 			dxl.setGoalPosition(ID_ANGULAR,POS_INIT);
 		}
 		dxl.setGoalPosition(ID_LINEAR,POS_INIT+BLOCK_DIST,HIGH_SPEED);
@@ -66,8 +66,7 @@ void manage_feedback (const joystick_turtle::Cmd_vibrations cmd){
 		dxl.setGoalSpeed(ID_LINEAR,NORMAL_SPEED);
 	}
 	else{ //vib_type==TYPE_TREMBLING
-		if (abs(pos_linear-POS_INIT) > BLOCK_DIST) dxl.setTorqueLimit(ID_LINEAR,TORQUE_MAX);
-		else{
+		if (abs(pos_linear-POS_INIT) < BLOCK_DIST){
 			if (dxl.readCurrentLoad(ID_LINEAR)>1023 && cmd.vib_backwards==true){
 						//dxl.setTorqueLimit(ID_LINEAR,0);
 				//dxl.setTorqueLimit(ID_ANGULAR,0);
@@ -90,8 +89,9 @@ void manage_feedback (const joystick_turtle::Cmd_vibrations cmd){
 				//dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR+cmd.vib_force_forwards);
 				//dxl.setGoalSpeed(ID_LINEAR,NORMAL_SPEED);
 			}
-			else if (dxl.readCurrentLoad(ID_LINEAR)<=1023 || cmd.vib_backwards==false) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
+			else if (!(dxl.readCurrentLoad(ID_LINEAR)>1023 && cmd.vib_backwards==true)) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
 		}
+		else dxl.setTorqueLimit(ID_LINEAR,TORQUE_MAX);
 	}
 }
 
@@ -110,8 +110,6 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    std::cout << std::endl << "> Joystick ready." << std::endl;
-
     // Init servo position
     int pos_angular,pos_linear;
     int torque_angular,torque_linear;
@@ -128,8 +126,12 @@ int main(int argc, char *argv[])
 	dxl.setSetting(ID_LINEAR,REG_P_GAIN,20,REGISTER_RAM,SERVO_MX12W);
 	dxl.setSetting(ID_LINEAR,REG_I_GAIN,5,REGISTER_RAM,SERVO_MX12W);
 	dxl.setSetting(ID_LINEAR,REG_D_GAIN,8,REGISTER_RAM,SERVO_MX12W);
+	dxl.setSetting(ID_ANGULAR,REG_P_GAIN,20,REGISTER_RAM,SERVO_MX12W);
+	dxl.setSetting(ID_ANGULAR,REG_I_GAIN,5,REGISTER_RAM,SERVO_MX12W);
+	dxl.setSetting(ID_ANGULAR,REG_D_GAIN,8,REGISTER_RAM,SERVO_MX12W);
 
-	
+	std::cout << std::endl << "> Joystick ready." << std::endl;
+
 
 	ros::init(argc, argv, "joystick_node");
   	ros::NodeHandle n;
@@ -154,6 +156,8 @@ int main(int argc, char *argv[])
 
 		//diff_linear = abs(pos_linear-POS_INIT);
 		//torque_linear = diff_linear*2+32;
+		if (abs(pos_linear-POS_INIT) < BLOCK_DIST) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
+		else dxl.setTorqueLimit(ID_LINEAR,TORQUE_MAX);
 		//if (abs(pos_linear-POS_INIT) < BLOCK_DIST) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
 		//else dxl.setTorqueLimit(ID_LINEAR,TORQUE_MAX);
 

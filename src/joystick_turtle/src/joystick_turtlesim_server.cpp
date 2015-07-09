@@ -29,7 +29,7 @@
 #define PUB_QUEUE_SIZE	1
 #define SUB_QUEUE_SIZE	1
 
-#define TURTLE_NAME		"turtle1"
+#define DEF_TURTLE_NAME	"turtle1"
 #define JOY_SUB_TOPIC	"joystick_position"
 #define FEED_PUB_TOPIC	"feedback"
 
@@ -151,16 +151,16 @@ void transmit_cmd (const sensor_msgs::Joy position){
 		msg_vel.linear.x=0.0;
 	}
 	else{
-		msg_vel.linear.x=float(position.axes[1])*4.0;
+		msg_vel.linear.x=float(position.axes[1])*0.5;//*4.0;
 	}
 
 	if (abs_float(position.axes[3])*512.0 <= STEP){
 		msg_vel.angular.z=0.0;
 	}
 	else{
-		msg_vel.angular.z=float(position.axes[3])*4.0;
+		msg_vel.angular.z=float(position.axes[3])*1.5;//*4.0;
 	}
-	if (position.header.seq % 500 == 0) std::cout << "Joystick sent " << position.header.seq << " packets so far.\n";
+	if (position.header.seq % 500 == 0) std::cout << "Recieved " << position.header.seq << " packets from the joystick so far.\n";
 
 }
 
@@ -173,11 +173,20 @@ int main(int argc, char *argv[])
 
 	ros::init(argc, argv, "joystick_turtlesim_server");
 	ros::NodeHandle n;
+	ros::Publisher cmd_vel_pub;
+	ros::Subscriber pose_sub;
 
-	ros::Publisher cmd_vel_pub = n.advertise<geometry_msgs::Twist>("/"+std::string(TURTLE_NAME)+"/cmd_vel", PUB_QUEUE_SIZE);
+	if (argc >= 2){
+		cmd_vel_pub = n.advertise<geometry_msgs::Twist>("/"+std::string(argv[1])+"/cmd_vel", PUB_QUEUE_SIZE);
+		pose_sub = n.subscribe("/"+std::string(argv[1])+"/pose", SUB_QUEUE_SIZE, manage_walls);
+	}
+	else{
+		cmd_vel_pub = n.advertise<geometry_msgs::Twist>("/"+std::string(DEF_TURTLE_NAME)+"/cmd_vel", PUB_QUEUE_SIZE);
+		pose_sub = n.subscribe("/"+std::string(DEF_TURTLE_NAME)+"/pose", SUB_QUEUE_SIZE, manage_walls);
+	}
+
 	ros::Publisher feedback_pub = n.advertise<joystick_turtle::Cmd_vibrations>(std::string(FEED_PUB_TOPIC), PUB_QUEUE_SIZE);
 
-	ros::Subscriber pose_sub = n.subscribe("/"+std::string(TURTLE_NAME)+"/pose", SUB_QUEUE_SIZE, manage_walls);
 	ros::Subscriber joystick_position_sub = n.subscribe(std::string(JOY_SUB_TOPIC), SUB_QUEUE_SIZE, transmit_cmd);
   	ros::Rate loop_rate(LOOP_RATE);
 

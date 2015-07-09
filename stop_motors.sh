@@ -3,4 +3,5 @@ if [ $? -eq 1 ]
 then echo "
 	/!\\ Connection to the servos lost. Can't stop them... /!\\
 "
+else echo " Motors successfully stopped."
 fi
