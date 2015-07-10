@@ -5,7 +5,7 @@
 #include "geometry_msgs/Twist.h"
 #include "turtlesim/Pose.h"
 #include "sensor_msgs/Joy.h"
-#include "joystick_turtle/Cmd_vibrations.h"
+#include "joystick_turtle/Cmd_feedback.h"
 
 // C++ standard library
 #include <iostream>
@@ -35,7 +35,7 @@
 
 /* ************************************************************************** */
 
-joystick_turtle::Cmd_vibrations msg_feedback;
+joystick_turtle::Cmd_feedback msg_feedback;
 geometry_msgs::Twist msg_vel;
 
 int block_forwards=0;
@@ -151,7 +151,7 @@ void transmit_cmd (const sensor_msgs::Joy position){
 		msg_vel.linear.x=0.0;
 	}
 	else{
-		msg_vel.linear.x=float(position.axes[1])*0.5;//*4.0;
+		msg_vel.linear.x=float(position.axes[1])*-0.5;//*4.0;
 	}
 
 	if (abs_float(position.axes[3])*512.0 <= STEP){
@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
 		pose_sub = n.subscribe("/"+std::string(DEF_TURTLE_NAME)+"/pose", SUB_QUEUE_SIZE, manage_walls);
 	}
 
-	ros::Publisher feedback_pub = n.advertise<joystick_turtle::Cmd_vibrations>(std::string(FEED_PUB_TOPIC), PUB_QUEUE_SIZE);
+	ros::Publisher feedback_pub = n.advertise<joystick_turtle::Cmd_feedback>(std::string(FEED_PUB_TOPIC), PUB_QUEUE_SIZE);
 
 	ros::Subscriber joystick_position_sub = n.subscribe(std::string(JOY_SUB_TOPIC), SUB_QUEUE_SIZE, transmit_cmd);
   	ros::Rate loop_rate(LOOP_RATE);

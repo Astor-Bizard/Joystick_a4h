@@ -3,7 +3,7 @@
 #include "./SmartServoFramework-master/src/DynamixelSimpleAPI.h"
 #include "ros/ros.h"
 #include "sensor_msgs/Joy.h"
-#include "joystick_turtle/Cmd_vibrations.h"
+#include "joystick_turtle/Cmd_feedback.h"
 
 /* ************************************************************************** */
 
@@ -41,7 +41,11 @@
 
 DynamixelSimpleAPI dxl;
 
-void manage_feedback (const joystick_turtle::Cmd_vibrations cmd){
+int max (const int a, const int b){
+	if (a>b) return a; else return b;
+}
+
+void manage_feedback (const joystick_turtle::Cmd_feedback cmd){
 	int pos_angular = dxl.readCurrentPosition(ID_ANGULAR);
 	int pos_linear = dxl.readCurrentPosition(ID_LINEAR);
 	if (cmd.vib_type==TYPE_JERK && cmd.vib_backwards==true && cmd.vib_forwards==true){
@@ -149,14 +153,14 @@ int main(int argc, char *argv[])
 		dxl.setGoalPosition(ID_ANGULAR,POS_INIT,NORMAL_SPEED);
 		dxl.setGoalPosition(ID_LINEAR,POS_INIT,NORMAL_SPEED);
 
-		//diff_angular = abs(pos_angular-POS_INIT);
+		diff_angular = abs(pos_angular-POS_INIT);
 		//torque_angular = diff_angular*2+32;
-		if (abs(pos_angular-POS_INIT) < BLOCK_DIST) dxl.setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR);
+		if (diff_angular < BLOCK_DIST) dxl.setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR);
 		else dxl.setTorqueLimit(ID_ANGULAR,TORQUE_MAX);
 
-		//diff_linear = abs(pos_linear-POS_INIT);
+		diff_linear = abs(pos_linear-POS_INIT);
 		//torque_linear = diff_linear*2+32;
-		if (abs(pos_linear-POS_INIT) < BLOCK_DIST) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
+		if (diff_linear < BLOCK_DIST) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
 		else dxl.setTorqueLimit(ID_LINEAR,TORQUE_MAX);
 		//if (abs(pos_linear-POS_INIT) < BLOCK_DIST) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
 		//else dxl.setTorqueLimit(ID_LINEAR,TORQUE_MAX);

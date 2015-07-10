@@ -51,7 +51,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  Cmd_vibrations.msg
+  Cmd_feedback.msg
 )
 
 ## Generate services in the 'srv' folder
