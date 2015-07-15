@@ -109,6 +109,8 @@ add_executable(turtlesim_teleop_joystick src/turtlesim_teleop_joystick.cpp src/S
 target_link_libraries(turtlesim_teleop_joystick ${catkin_LIBRARIES})
 add_dependencies(turtlesim_teleop_joystick joystick_turtle_generate_messages_cpp)
 
+
+
 add_executable(joystick_node src/joystick_node.cpp src/SmartServoFramework-master/src/SerialPort.cpp src/SmartServoFramework-master/src/SerialPortLinux.cpp src/SmartServoFramework-master/src/SerialPortMacOS.cpp src/SmartServoFramework-master/src/SerialPortWindows.cpp src/SmartServoFramework-master/src/ControlTables.cpp src/SmartServoFramework-master/src/Utils.cpp src/SmartServoFramework-master/src/ControllerAPI.cpp src/SmartServoFramework-master/src/Servo.cpp src/SmartServoFramework-master/src/Dynamixel.cpp src/SmartServoFramework-master/src/DynamixelTools.cpp src/SmartServoFramework-master/src/DynamixelSimpleAPI.cpp src/SmartServoFramework-master/src/DynamixelController.cpp src/SmartServoFramework-master/src/ServoDynamixel.cpp src/SmartServoFramework-master/src/ServoAX.cpp src/SmartServoFramework-master/src/ServoEX.cpp src/SmartServoFramework-master/src/ServoMX.cpp src/SmartServoFramework-master/src/ServoXL.cpp src/SmartServoFramework-master/src/HerkuleX.cpp src/SmartServoFramework-master/src/HerkuleXTools.cpp src/SmartServoFramework-master/src/HerkuleXSimpleAPI.cpp src/SmartServoFramework-master/src/HerkuleXController.cpp src/SmartServoFramework-master/src/ServoHerkuleX.cpp src/SmartServoFramework-master/src/ServoDRS.cpp)
 target_link_libraries(joystick_node ${catkin_LIBRARIES})
 add_dependencies(joystick_node joystick_turtle_generate_messages_cpp)
@@ -116,6 +118,14 @@ add_dependencies(joystick_node joystick_turtle_generate_messages_cpp)
 add_executable(joystick_turtlesim_server src/joystick_turtlesim_server.cpp)
 target_link_libraries(joystick_turtlesim_server ${catkin_LIBRARIES})
 add_dependencies(joystick_turtlesim_server joystick_turtle_generate_messages_cpp)
+
+add_executable(joystick_node_v2 src/joystick_node_v2.cpp src/SmartServoFramework-master/src/SerialPort.cpp src/SmartServoFramework-master/src/SerialPortLinux.cpp src/SmartServoFramework-master/src/SerialPortMacOS.cpp src/SmartServoFramework-master/src/SerialPortWindows.cpp src/SmartServoFramework-master/src/ControlTables.cpp src/SmartServoFramework-master/src/Utils.cpp src/SmartServoFramework-master/src/ControllerAPI.cpp src/SmartServoFramework-master/src/Servo.cpp src/SmartServoFramework-master/src/Dynamixel.cpp src/SmartServoFramework-master/src/DynamixelTools.cpp src/SmartServoFramework-master/src/DynamixelSimpleAPI.cpp src/SmartServoFramework-master/src/DynamixelController.cpp src/SmartServoFramework-master/src/ServoDynamixel.cpp src/SmartServoFramework-master/src/ServoAX.cpp src/SmartServoFramework-master/src/ServoEX.cpp src/SmartServoFramework-master/src/ServoMX.cpp src/SmartServoFramework-master/src/ServoXL.cpp src/SmartServoFramework-master/src/HerkuleX.cpp src/SmartServoFramework-master/src/HerkuleXTools.cpp src/SmartServoFramework-master/src/HerkuleXSimpleAPI.cpp src/SmartServoFramework-master/src/HerkuleXController.cpp src/SmartServoFramework-master/src/ServoHerkuleX.cpp src/SmartServoFramework-master/src/ServoDRS.cpp)
+target_link_libraries(joystick_node_v2 ${catkin_LIBRARIES})
+add_dependencies(joystick_node_v2 joystick_turtle_generate_messages_cpp)
+
+add_executable(joystick_turtlesim_server_v2 src/joystick_turtlesim_server_v2.cpp)
+target_link_libraries(joystick_turtlesim_server_v2 ${catkin_LIBRARIES})
+add_dependencies(joystick_turtlesim_server_v2 joystick_turtle_generate_messages_cpp)
 
 ## Declare a cpp library
 # add_library(DynamixelSimpleAPI

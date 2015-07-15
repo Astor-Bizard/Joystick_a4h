@@ -18,7 +18,8 @@
 #define ID_ANGULAR		1
 #define ID_LINEAR		10
 
-#define POS_INIT		2047
+#define POS_INIT_LIN	2047
+#define POS_INIT_ANG	2047
 
 #define NORMAL_SPEED	512
 #define HIGH_SPEED		1023
@@ -28,6 +29,8 @@
 
 #define TORQUE_MAX		1023
 #define BLOCK_DIST		512
+
+#define STEP			32
 
 // Macros for ROS
 #define LOOP_RATE		100
@@ -51,26 +54,26 @@ void manage_feedback (const joystick_turtle::Cmd_feedback cmd){
 	if (cmd.vib_type==TYPE_JERK && cmd.vib_backwards==true && cmd.vib_forwards==true){
 		dxl.setTorqueLimit(ID_LINEAR,cmd.vib_force_forwards);
 		if (dxl.readCurrentLoad(ID_LINEAR) > 1023){
-			dxl.setGoalPosition(ID_LINEAR,POS_INIT+BLOCK_DIST,HIGH_SPEED);
-			dxl.setGoalPosition(ID_ANGULAR,POS_INIT-BLOCK_DIST);
-			dxl.setGoalPosition(ID_ANGULAR,POS_INIT+BLOCK_DIST);
-			dxl.setGoalPosition(ID_ANGULAR,POS_INIT);
+			dxl.setGoalPosition(ID_LINEAR,POS_INIT_LIN+BLOCK_DIST,HIGH_SPEED);
+			dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG-BLOCK_DIST);
+			dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG+BLOCK_DIST);
+			dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG);
 		}
-		dxl.setGoalPosition(ID_LINEAR,POS_INIT+BLOCK_DIST,HIGH_SPEED);
-		dxl.setGoalPosition(ID_ANGULAR,POS_INIT+BLOCK_DIST);
-		dxl.setGoalPosition(ID_ANGULAR,POS_INIT-BLOCK_DIST);
-		dxl.setGoalPosition(ID_ANGULAR,POS_INIT);
-		dxl.setGoalPosition(ID_LINEAR,POS_INIT-BLOCK_DIST,HIGH_SPEED);
+		dxl.setGoalPosition(ID_LINEAR,POS_INIT_LIN+BLOCK_DIST,HIGH_SPEED);
+		dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG+BLOCK_DIST);
+		dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG-BLOCK_DIST);
+		dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG);
+		dxl.setGoalPosition(ID_LINEAR,POS_INIT_LIN-BLOCK_DIST,HIGH_SPEED);
 		if (dxl.readCurrentLoad(ID_LINEAR) <= 1023){
-			dxl.setGoalPosition(ID_ANGULAR,POS_INIT+BLOCK_DIST);
-			dxl.setGoalPosition(ID_ANGULAR,POS_INIT-BLOCK_DIST);
-			dxl.setGoalPosition(ID_ANGULAR,POS_INIT);
-			dxl.setGoalPosition(ID_LINEAR,POS_INIT+BLOCK_DIST,HIGH_SPEED);
+			dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG+BLOCK_DIST);
+			dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG-BLOCK_DIST);
+			dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG);
+			dxl.setGoalPosition(ID_LINEAR,POS_INIT_LIN+BLOCK_DIST,HIGH_SPEED);
 		}
 		dxl.setGoalSpeed(ID_LINEAR,NORMAL_SPEED);
 	}
 	else{ //vib_type==TYPE_TREMBLING
-		if (abs(pos_linear-POS_INIT) < BLOCK_DIST){
+		if (abs(pos_linear-POS_INIT_LIN) < BLOCK_DIST){
 			if (dxl.readCurrentLoad(ID_LINEAR)>1023 && cmd.vib_backwards==true){
 						//dxl.setTorqueLimit(ID_LINEAR,0);
 				//dxl.setTorqueLimit(ID_ANGULAR,0);
@@ -124,8 +127,8 @@ int main(int argc, char *argv[])
     dxl.setMaxTorque(ID_LINEAR,TORQUE_MAX);
     dxl.setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR);
     dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
-    dxl.setGoalPosition(ID_ANGULAR,POS_INIT,NORMAL_SPEED);
-    dxl.setGoalPosition(ID_LINEAR,POS_INIT,NORMAL_SPEED);
+    dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG,NORMAL_SPEED);
+    dxl.setGoalPosition(ID_LINEAR,POS_INIT_LIN,NORMAL_SPEED);
 
 	dxl.setSetting(ID_LINEAR,REG_P_GAIN,20,REGISTER_RAM,SERVO_MX12W);
 	dxl.setSetting(ID_LINEAR,REG_I_GAIN,5,REGISTER_RAM,SERVO_MX12W);
@@ -150,15 +153,15 @@ int main(int argc, char *argv[])
 		sensor_msgs::Joy pose;
 		pos_angular = dxl.readCurrentPosition(ID_ANGULAR);
 		pos_linear = dxl.readCurrentPosition(ID_LINEAR);
-		dxl.setGoalPosition(ID_ANGULAR,POS_INIT,NORMAL_SPEED);
-		dxl.setGoalPosition(ID_LINEAR,POS_INIT,NORMAL_SPEED);
+		dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG,NORMAL_SPEED);
+		dxl.setGoalPosition(ID_LINEAR,POS_INIT_LIN,NORMAL_SPEED);
 
-		diff_angular = abs(pos_angular-POS_INIT);
+		diff_angular = abs(pos_angular-POS_INIT_ANG);
 		//torque_angular = diff_angular*2+32;
 		if (diff_angular < BLOCK_DIST) dxl.setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR);
 		else dxl.setTorqueLimit(ID_ANGULAR,TORQUE_MAX);
 
-		diff_linear = abs(pos_linear-POS_INIT);
+		diff_linear = abs(pos_linear-POS_INIT_LIN);
 		//torque_linear = diff_linear*2+32;
 		if (diff_linear < BLOCK_DIST) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
 		else dxl.setTorqueLimit(ID_LINEAR,TORQUE_MAX);
@@ -166,10 +169,12 @@ int main(int argc, char *argv[])
 		//else dxl.setTorqueLimit(ID_LINEAR,TORQUE_MAX);
 
 		// Valid positions for joysitck servos are [1535;2059] (2047 +/- 512)
-		pose.axes.push_back(0);
-		pose.axes.push_back((float(pos_linear)-2047.0)/512.0);
-		pose.axes.push_back(0);
-		pose.axes.push_back((float(pos_angular)-2047.0)/512.0);
+		if (diff_linear<STEP) pos_linear=POS_INIT_LIN;
+		if (diff_angular<STEP) pos_angular=POS_INIT_ANG;
+		pose.axes.push_back(0.0);
+		pose.axes.push_back(float(pos_linear-POS_INIT_LIN)/float(BLOCK_DIST));
+		pose.axes.push_back(0.0);
+		pose.axes.push_back(float(pos_angular-POS_INIT_ANG)/float(BLOCK_DIST));
 
 		pose.header.seq=i;
 		i++;

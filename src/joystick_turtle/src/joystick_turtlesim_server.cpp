@@ -10,7 +10,6 @@
 // C++ standard library
 #include <iostream>
 #include <cmath>
-#include <unistd.h>
 
 /* ************************************************************************** */
 
@@ -20,9 +19,6 @@
 #define TYPE_TREMBLING	2
 
 #define FORCE_MAX		1023
-
-// 1 Macro to manage immobilisation
-#define STEP			32
 
 // Macros for ROS
 #define LOOP_RATE		100
@@ -147,19 +143,10 @@ void manage_walls (const turtlesim::Pose position){
 
 void transmit_cmd (const sensor_msgs::Joy position){
 
-	if (abs_float(position.axes[1])*512.0 <= STEP){
-		msg_vel.linear.x=0.0;
-	}
-	else{
-		msg_vel.linear.x=float(position.axes[1])*-0.5;//*4.0;
-	}
-
-	if (abs_float(position.axes[3])*512.0 <= STEP){
-		msg_vel.angular.z=0.0;
-	}
-	else{
-		msg_vel.angular.z=float(position.axes[3])*1.5;//*4.0;
-	}
+	msg_vel.linear.x=float(position.axes[1])*-0.5;
+	//msg_vel.linear.x=float(position.axes[1])*4.0;
+	msg_vel.angular.z=float(position.axes[3])*1.5;
+	//msg_vel.angular.z=float(position.axes[3])*4.0;
 	if (position.header.seq % 500 == 0) std::cout << "Recieved " << position.header.seq << " packets from the joystick so far.\n";
 
 }
