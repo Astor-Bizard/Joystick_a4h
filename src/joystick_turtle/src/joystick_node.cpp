@@ -3,16 +3,14 @@
 #include "./SmartServoFramework-master/src/DynamixelSimpleAPI.h"
 #include "ros/ros.h"
 #include "sensor_msgs/Joy.h"
-#include "joystick_turtle/Cmd_feedback.h"
+#include "sensor_msgs/JoyFeedbackArray.h"
 
 /* ************************************************************************** */
 
-// Vibration types
-
-#define TYPE_JERK		1
-#define TYPE_TREMBLING	2
-
-#define FORCE_MAX		1023
+#define ID_ANG_LEFT		11
+#define ID_ANG_RIGHT	12
+#define ID_LIN_FOR		101
+#define ID_LIN_BACK		102
 
 // Macros for the 2 servos
 #define ID_ANGULAR		1
@@ -42,19 +40,19 @@
 
 /* ************************************************************************** */
 
+int max (const int a, const int b){if (a>b) return a; else return b;}
+int min (const int a, const int b){if (a<b) return a; else return b;}
+
 DynamixelSimpleAPI dxl;
 
-int max (const int a, const int b){
-	if (a>b) return a; else return b;
-}
-
-void manage_feedback (const joystick_turtle::Cmd_feedback cmd){
+void manage_feedback (const sensor_msgs::JoyFeedbackArray cmd){
 	int pos_angular = dxl.readCurrentPosition(ID_ANGULAR);
 	int pos_linear = dxl.readCurrentPosition(ID_LINEAR);
-	if (cmd.vib_type==TYPE_JERK && cmd.vib_backwards==true && cmd.vib_forwards==true){
-		dxl.setTorqueLimit(ID_LINEAR,cmd.vib_force_forwards);
+	int load_lin,load_ang;
+	if (cmd.array[0].type==sensor_msgs::JoyFeedback::TYPE_BUZZER){
+		dxl.setTorqueLimit(ID_LINEAR,cmd.array[0].intensity);
 		if (dxl.readCurrentLoad(ID_LINEAR) > 1023){
-			dxl.setGoalPosition(ID_LINEAR,POS_INIT_LIN+BLOCK_DIST,HIGH_SPEED);
+			dxl.setGoalPosition(ID_LINEAR,POS_INIT_LIN-BLOCK_DIST,HIGH_SPEED);
 			dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG-BLOCK_DIST);
 			dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG+BLOCK_DIST);
 			dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG);
@@ -72,34 +70,45 @@ void manage_feedback (const joystick_turtle::Cmd_feedback cmd){
 		}
 		dxl.setGoalSpeed(ID_LINEAR,NORMAL_SPEED);
 	}
-	else{ //vib_type==TYPE_TREMBLING
-		if (abs(pos_linear-POS_INIT_LIN) < BLOCK_DIST){
-			if (dxl.readCurrentLoad(ID_LINEAR)>1023 && cmd.vib_backwards==true){
-						//dxl.setTorqueLimit(ID_LINEAR,0);
-				//dxl.setTorqueLimit(ID_ANGULAR,0);
-						//dxl.setGoalSpeed(ID_LINEAR,HIGH_SPEED);
-				dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR+cmd.vib_force_backwards);
-				//dxl.setTorqueLimit(ID_ANGULAR,TORQUE_MAX);
-			
-				//dxl.setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR);
-				//dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR+cmd.vib_force_backwards);
-				//dxl.setGoalSpeed(ID_LINEAR,NORMAL_SPEED);
-			}
-			if (dxl.readCurrentLoad(ID_LINEAR)<=1023 && cmd.vib_forwards==true){
-						//dxl.setTorqueLimit(ID_LINEAR,0);
-				//dxl.setTorqueLimit(ID_ANGULAR,0);
-						//dxl.setGoalSpeed(ID_LINEAR,HIGH_SPEED);
-				dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR+cmd.vib_force_forwards);
-				//dxl.setTorqueLimit(ID_ANGULAR,TORQUE_MAX);
-			
-				//dxl.setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR);
-				//dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR+cmd.vib_force_forwards);
-				//dxl.setGoalSpeed(ID_LINEAR,NORMAL_SPEED);
-			}
-			else if (!(dxl.readCurrentLoad(ID_LINEAR)>1023 && cmd.vib_backwards==true)) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
+
+	else if (cmd.array[0].type==sensor_msgs::JoyFeedback::TYPE_RUMBLE){
+		if (abs(pos_linear-POS_INIT_LIN) < BLOCK_DIST || abs(pos_angular-POS_INIT_ANG) < BLOCK_DIST){
+			load_lin=dxl.readCurrentLoad(ID_LINEAR);
+			load_ang=dxl.readCurrentLoad(ID_ANGULAR);
+			for (int i=0;i<4;i++){
+				switch (cmd.array[i].id){
+					case ID_LIN_FOR:
+						if (load_lin<=1023){
+							dxl.setTorqueLimit(ID_LINEAR,min(TORQUE_LINEAR+cmd.array[i].intensity,TORQUE_MAX));
+						}
+						break;
+					case ID_LIN_BACK:
+						if (load_lin>1023){
+							dxl.setTorqueLimit(ID_LINEAR,min(TORQUE_LINEAR+cmd.array[i].intensity,TORQUE_MAX));
+						}
+						break;
+					case ID_ANG_LEFT:
+						if (load_ang<=1023){
+							dxl.setTorqueLimit(ID_ANGULAR,min(TORQUE_ANGULAR+cmd.array[i].intensity,TORQUE_MAX));
+						}
+						break;
+					case ID_ANG_RIGHT:
+						if (load_ang>1023){
+							dxl.setTorqueLimit(ID_ANGULAR,min(TORQUE_ANGULAR+cmd.array[i].intensity,TORQUE_MAX));
+						}
+						break;
+					default:
+						std::cerr << "Some data are unreadable ! (ID : " << cmd.array[i].id << ")" << std::endl;
+						break;
+				}
+			}	
 		}
-		else dxl.setTorqueLimit(ID_LINEAR,TORQUE_MAX);
+		else{
+			dxl.setTorqueLimit(ID_LINEAR,TORQUE_MAX);
+			dxl.setTorqueLimit(ID_ANGULAR,TORQUE_MAX);
+		}
 	}
+
 }
 
 int main(int argc, char *argv[])
@@ -168,7 +177,7 @@ int main(int argc, char *argv[])
 		//if (abs(pos_linear-POS_INIT) < BLOCK_DIST) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
 		//else dxl.setTorqueLimit(ID_LINEAR,TORQUE_MAX);
 
-		// Valid positions for joysitck servos are [1535;2059] (2047 +/- 512)
+		// Return axes position in [-1,1]
 		if (diff_linear<STEP) pos_linear=POS_INIT_LIN;
 		if (diff_angular<STEP) pos_angular=POS_INIT_ANG;
 		pose.axes.push_back(0.0);

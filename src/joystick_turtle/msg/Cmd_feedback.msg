@@ -1,5 +1,0 @@
-bool vib_forwards
-bool vib_backwards
-int8 vib_type
-int64 vib_force_forwards
-int64 vib_force_backwards
