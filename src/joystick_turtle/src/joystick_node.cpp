@@ -1,28 +1,26 @@
 
 // Smart Servo Framework
 #include "./SmartServoFramework-master/src/DynamixelSimpleAPI.h"
+
+// ROS dependencies
 #include "ros/ros.h"
-#include "sensor_msgs/Joy.h"
-#include "sensor_msgs/JoyFeedbackArray.h"
+#include "sensor_msgs/Joy.h"				// Output
+#include "sensor_msgs/JoyFeedbackArray.h"	// Input
+#include "Topics.h"
 
 /* ************************************************************************** */
-
-#define ID_ANG_LEFT		11
-#define ID_ANG_RIGHT	12
-#define ID_LIN_FOR		101
-#define ID_LIN_BACK		102
 
 // Macros for the 2 servos
 #define ID_ANGULAR		1
 #define ID_LINEAR		10
 
-#define POS_INIT_LIN	2047
+#define POS_INIT_LIN	1800
 #define POS_INIT_ANG	2047
 
 #define NORMAL_SPEED	512
 #define HIGH_SPEED		1023
 
-#define TORQUE_ANGULAR	150
+#define TORQUE_ANGULAR	80
 #define TORQUE_LINEAR	80
 
 #define TORQUE_MAX		1023
@@ -35,34 +33,50 @@
 #define PUB_QUEUE_SIZE	10
 #define SUB_QUEUE_SIZE	10
 
-#define JOY_PUB_TOPIC	"joystick_position"
-#define FEED_SUB_TOPIC	"feedback"
-
 /* ************************************************************************** */
 
 int max (const int a, const int b){if (a>b) return a; else return b;}
 int min (const int a, const int b){if (a<b) return a; else return b;}
+float max (const float a, const float b){if (a>b) return a; else return b;}
+float min (const float a, const float b){if (a<b) return a; else return b;}
+
+int limit (const int a, const int l1, const int l2){
+	return max(min(a,max(l1,l2)),min(l1,l2));
+}
+
+float limit (const float a, const float l1, const float l2){
+	return max(min(a,max(l1,l2)),min(l1,l2));
+}
 
 DynamixelSimpleAPI dxl;
+
+void block_linear (){
+	int pos_linear = dxl.readCurrentPosition(ID_LINEAR);
+	int diff_linear = abs(pos_linear-POS_INIT_LIN);
+	dxl.setTorqueLimit(ID_LINEAR,min(TORQUE_MAX,abs(diff_linear-BLOCK_DIST)*5+TORQUE_LINEAR));
+}
+
+void block_angular (){
+	int pos_angular = dxl.readCurrentPosition(ID_ANGULAR);
+	int diff_angular = abs(pos_angular-POS_INIT_ANG);
+	dxl.setTorqueLimit(ID_ANGULAR,min(TORQUE_MAX,abs(diff_angular-BLOCK_DIST)*5+TORQUE_ANGULAR));
+}
 
 void manage_feedback (const sensor_msgs::JoyFeedbackArray cmd){
 	int pos_angular = dxl.readCurrentPosition(ID_ANGULAR);
 	int pos_linear = dxl.readCurrentPosition(ID_LINEAR);
-	int load_lin,load_ang;
+	int load_lin=dxl.readCurrentLoad(ID_LINEAR);
+	int load_ang;
+	int diff_angular, diff_linear;
 	if (cmd.array[0].type==sensor_msgs::JoyFeedback::TYPE_BUZZER){
 		dxl.setTorqueLimit(ID_LINEAR,cmd.array[0].intensity);
-		if (dxl.readCurrentLoad(ID_LINEAR) > 1023){
+		if (load_lin > 1023){
 			dxl.setGoalPosition(ID_LINEAR,POS_INIT_LIN-BLOCK_DIST,HIGH_SPEED);
 			dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG-BLOCK_DIST);
 			dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG+BLOCK_DIST);
 			dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG);
 		}
-		dxl.setGoalPosition(ID_LINEAR,POS_INIT_LIN+BLOCK_DIST,HIGH_SPEED);
-		dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG+BLOCK_DIST);
-		dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG-BLOCK_DIST);
-		dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG);
-		dxl.setGoalPosition(ID_LINEAR,POS_INIT_LIN-BLOCK_DIST,HIGH_SPEED);
-		if (dxl.readCurrentLoad(ID_LINEAR) <= 1023){
+		else{
 			dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG+BLOCK_DIST);
 			dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG-BLOCK_DIST);
 			dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG);
@@ -72,40 +86,48 @@ void manage_feedback (const sensor_msgs::JoyFeedbackArray cmd){
 	}
 
 	else if (cmd.array[0].type==sensor_msgs::JoyFeedback::TYPE_RUMBLE){
-		if (abs(pos_linear-POS_INIT_LIN) < BLOCK_DIST || abs(pos_angular-POS_INIT_ANG) < BLOCK_DIST){
-			load_lin=dxl.readCurrentLoad(ID_LINEAR);
-			load_ang=dxl.readCurrentLoad(ID_ANGULAR);
-			for (int i=0;i<4;i++){
-				switch (cmd.array[i].id){
-					case ID_LIN_FOR:
-						if (load_lin<=1023){
-							dxl.setTorqueLimit(ID_LINEAR,min(TORQUE_LINEAR+cmd.array[i].intensity,TORQUE_MAX));
-						}
-						break;
-					case ID_LIN_BACK:
-						if (load_lin>1023){
-							dxl.setTorqueLimit(ID_LINEAR,min(TORQUE_LINEAR+cmd.array[i].intensity,TORQUE_MAX));
-						}
-						break;
-					case ID_ANG_LEFT:
-						if (load_ang<=1023){
-							dxl.setTorqueLimit(ID_ANGULAR,min(TORQUE_ANGULAR+cmd.array[i].intensity,TORQUE_MAX));
-						}
-						break;
-					case ID_ANG_RIGHT:
-						if (load_ang>1023){
-							dxl.setTorqueLimit(ID_ANGULAR,min(TORQUE_ANGULAR+cmd.array[i].intensity,TORQUE_MAX));
-						}
-						break;
-					default:
-						std::cerr << "Some data are unreadable ! (ID : " << cmd.array[i].id << ")" << std::endl;
-						break;
-				}
-			}	
-		}
-		else{
-			dxl.setTorqueLimit(ID_LINEAR,TORQUE_MAX);
-			dxl.setTorqueLimit(ID_ANGULAR,TORQUE_MAX);
+		load_lin=dxl.readCurrentLoad(ID_LINEAR);
+		load_ang=dxl.readCurrentLoad(ID_ANGULAR);
+		diff_linear = abs(pos_linear-POS_INIT_LIN);
+		diff_angular = abs(pos_angular-POS_INIT_ANG);
+		for (int i=0;i<4;i++){
+			switch (cmd.array[i].id){
+				case ID_LIN_FOR:
+					if (diff_linear > BLOCK_DIST){
+						block_linear();
+					}
+					else if (load_lin<=1023){
+						dxl.setTorqueLimit(ID_LINEAR,limit(int(cmd.array[i].intensity),TORQUE_MAX,TORQUE_LINEAR));
+					}
+					break;
+				case ID_LIN_BACK:
+					if (diff_linear > BLOCK_DIST){
+						block_linear();
+					}
+					else if (load_lin>1023){
+						dxl.setTorqueLimit(ID_LINEAR,limit(int(cmd.array[i].intensity),TORQUE_MAX,TORQUE_LINEAR));
+					}
+					break;
+				case ID_ANG_LEFT:
+					if (diff_angular > BLOCK_DIST){
+						block_angular();
+					}
+					else if (load_ang<=1023){
+						dxl.setTorqueLimit(ID_ANGULAR,limit(int(cmd.array[i].intensity),TORQUE_MAX,TORQUE_ANGULAR));
+					}
+					break;
+				case ID_ANG_RIGHT:
+					if (diff_angular > BLOCK_DIST){
+						block_angular();
+					}
+					else if (load_ang>1023){
+						dxl.setTorqueLimit(ID_ANGULAR,limit(int(cmd.array[i].intensity),TORQUE_MAX,TORQUE_ANGULAR));
+					}
+					break;
+				default:
+					std::cerr << "Some data are unreadable ! (ID : " << cmd.array[i].id << ")" << std::endl;
+					break;
+			}
 		}
 	}
 
@@ -152,30 +174,28 @@ int main(int argc, char *argv[])
 	ros::init(argc, argv, "joystick_node");
   	ros::NodeHandle n;
 
-  	ros::Publisher joy_pub = n.advertise<sensor_msgs::Joy>(std::string(JOY_PUB_TOPIC), PUB_QUEUE_SIZE);
-	ros::Subscriber feedback_sub = n.subscribe(std::string(FEED_SUB_TOPIC), SUB_QUEUE_SIZE, manage_feedback);
+  	ros::Publisher joy_pub = n.advertise<sensor_msgs::Joy>(std::string(JOYSTICK_TOPIC), PUB_QUEUE_SIZE);
+	ros::Subscriber feedback_sub = n.subscribe(std::string(FEEDBACK_TOPIC), SUB_QUEUE_SIZE, manage_feedback);
 
   	ros::Rate loop_rate(LOOP_RATE);
 	int i=1;
+	
     // Run main loop
     while (ros::ok()){
 		sensor_msgs::Joy pose;
+		pose.header.frame_id="joystick_turtle/joystick";
 		pos_angular = dxl.readCurrentPosition(ID_ANGULAR);
 		pos_linear = dxl.readCurrentPosition(ID_LINEAR);
 		dxl.setGoalPosition(ID_ANGULAR,POS_INIT_ANG,NORMAL_SPEED);
 		dxl.setGoalPosition(ID_LINEAR,POS_INIT_LIN,NORMAL_SPEED);
 
 		diff_angular = abs(pos_angular-POS_INIT_ANG);
-		//torque_angular = diff_angular*2+32;
 		if (diff_angular < BLOCK_DIST) dxl.setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR);
-		else dxl.setTorqueLimit(ID_ANGULAR,TORQUE_MAX);
+		else block_angular();
 
 		diff_linear = abs(pos_linear-POS_INIT_LIN);
-		//torque_linear = diff_linear*2+32;
 		if (diff_linear < BLOCK_DIST) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
-		else dxl.setTorqueLimit(ID_LINEAR,TORQUE_MAX);
-		//if (abs(pos_linear-POS_INIT) < BLOCK_DIST) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
-		//else dxl.setTorqueLimit(ID_LINEAR,TORQUE_MAX);
+		else block_linear();
 
 		// Return axes position in [-1,1]
 		if (diff_linear<STEP) pos_linear=POS_INIT_LIN;
@@ -187,13 +207,12 @@ int main(int argc, char *argv[])
 
 		pose.header.seq=i;
 		i++;
-
+		
 		pose.header.stamp=ros::Time::now();
-
-		pose.header.frame_id="joystick_turtle/joystick";
 
 		joy_pub.publish(pose);
 		ros::spinOnce();
+		std::cout << "Current torque (lin) : " << dxl.getTorqueLimit(ID_LINEAR) << " ; Current torque (ang) : " << dxl.getTorqueLimit(ID_ANGULAR) << std::endl;
 		loop_rate.sleep();
 	}
 

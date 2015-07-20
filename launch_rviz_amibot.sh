@@ -1,2 +1,2 @@
 export ROS_MASTER_URI=http://momobot:11311
-roslaunch rplidar_ros view_rplidar.launch
+gnome-terminal -x sh -c "roslaunch rplidar_ros view_rplidar.launch; bash"

@@ -1,11 +1,12 @@
 
-// Smart Servo Framework
+// ROS dependencies
 #include "ros/ros.h"
 #include "std_msgs/String.h"
-#include "geometry_msgs/Twist.h"
-#include "turtlesim/Pose.h"
-#include "sensor_msgs/Joy.h"
-#include "sensor_msgs/JoyFeedbackArray.h"
+#include "sensor_msgs/Joy.h"				// Input
+#include "geometry_msgs/Twist.h"			// Output
+#include "turtlesim/Pose.h"					// Input
+#include "sensor_msgs/JoyFeedbackArray.h"	// Output
+#include "Topics.h"
 
 // C++ standard library
 #include <iostream>
@@ -16,19 +17,12 @@
 
 #define FORCE_MAX		1023
 
-#define ID_ANG_LEFT		11
-#define ID_ANG_RIGHT	12
-#define ID_LIN_FOR		101
-#define ID_LIN_BACK		102
-
 // Macros for ROS
 #define LOOP_RATE		100
-#define PUB_QUEUE_SIZE	1
-#define SUB_QUEUE_SIZE	1
+#define PUB_QUEUE_SIZE	10
+#define SUB_QUEUE_SIZE	10
 
 #define DEF_TURTLE_NAME	"turtle1"
-#define JOY_SUB_TOPIC	"joystick_position"
-#define FEED_PUB_TOPIC	"feedback"
 
 /* ************************************************************************** */
 
@@ -200,8 +194,8 @@ void manage_walls (const turtlesim::Pose position){
 
 void transmit_cmd (const sensor_msgs::Joy position){
 
-/*amibot*/	//msg_vel.linear.x=float(position.axes[1])*-0.5;msg_vel.angular.z=float(position.axes[3])*1.5;
-/*turtle*/	msg_vel.linear.x=float(position.axes[1])*4.0;msg_vel.angular.z=float(position.axes[3])*4.0;
+	msg_vel.linear.x=float(position.axes[1])*4.0;
+	msg_vel.angular.z=float(position.axes[3])*4.0;
 	if (position.header.seq % 500 == 0) std::cout << "Recieved the " << position.header.seq << "th packet sent by the joystick !\n";
 
 }
@@ -231,9 +225,9 @@ int main(int argc, char *argv[])
 		pose_sub = n.subscribe("/"+std::string(DEF_TURTLE_NAME)+"/pose", SUB_QUEUE_SIZE, manage_walls);
 	}
 
-	ros::Publisher feedback_pub = n.advertise<sensor_msgs::JoyFeedbackArray>(std::string(FEED_PUB_TOPIC), PUB_QUEUE_SIZE);
+	ros::Publisher feedback_pub = n.advertise<sensor_msgs::JoyFeedbackArray>(std::string(FEEDBACK_TOPIC), PUB_QUEUE_SIZE);
 
-	ros::Subscriber joystick_position_sub = n.subscribe(std::string(JOY_SUB_TOPIC), SUB_QUEUE_SIZE, transmit_cmd);
+	ros::Subscriber joystick_position_sub = n.subscribe(std::string(JOYSTICK_TOPIC), SUB_QUEUE_SIZE, transmit_cmd);
   	ros::Rate loop_rate(LOOP_RATE);
 
     // Run main loop
