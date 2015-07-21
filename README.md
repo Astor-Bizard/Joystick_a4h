@@ -56,7 +56,7 @@ You can help us finding bugs, proposing new functionalities and more directly on
 ### Developers
 
 You can browse the git repository here on GitHub, submit patches and push requests!  
-Here is a link to [SmartServoFramework](https://github.com/emericg/SmartServoFramework) from Emeric Grange <emeric.grange@gmail.com> that is used in this project.
+Here is a link to [SmartServoFramework](https://github.com/emericg/SmartServoFramework) from Emeric Grange ( <emeric.grange@gmail.com> ) that is used in this project.
 
 ## Licensing
 
