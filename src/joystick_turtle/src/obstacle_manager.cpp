@@ -58,14 +58,7 @@ void manage_obstacles (const sensor_msgs::LaserScan obstacles){
 			msg_feedback.array[0].intensity=(1.0-((minimum-obstacles.range_min)/(DIST_DETECT_2-obstacles.range_min)))*float(FORCE_MAX);
 		}
 		else{
-			minimum=obstacles.ranges[ind_min(obstacles.ranges,120,240)];
-			if (minimum<DIST_DETECT_3){
-				msg_feedback.array[0].type=sensor_msgs::JoyFeedback::TYPE_RUMBLE;
-				msg_feedback.array[0].intensity=(1.0-((minimum-obstacles.range_min)/(DIST_DETECT_3-obstacles.range_min)))*float(FORCE_MAX);
-			}
-			else{
-				msg_feedback.array[0].type=sensor_msgs::JoyFeedback::TYPE_LED;
-			}
+			msg_feedback.array[0].type=sensor_msgs::JoyFeedback::TYPE_LED;
 		}
 	}
 	minimum=std::min(obstacles.ranges[ind_min(obstacles.ranges,0,10)],obstacles.ranges[ind_min(obstacles.ranges,350,359)]);
@@ -80,14 +73,7 @@ void manage_obstacles (const sensor_msgs::LaserScan obstacles){
 			msg_feedback.array[1].intensity=(1.0-((minimum-obstacles.range_min)/(DIST_DETECT_2-obstacles.range_min)))*float(FORCE_MAX);
 		}
 		else{
-			minimum=std::min(obstacles.ranges[ind_min(obstacles.ranges,0,60)],obstacles.ranges[ind_min(obstacles.ranges,300,359)]);
-			if (minimum<DIST_DETECT_3){
-				msg_feedback.array[1].type=sensor_msgs::JoyFeedback::TYPE_RUMBLE;
-				msg_feedback.array[1].intensity=(1.0-((minimum-obstacles.range_min)/(DIST_DETECT_3-obstacles.range_min)))*float(FORCE_MAX);
-			}
-			else{
-				msg_feedback.array[1].type=sensor_msgs::JoyFeedback::TYPE_LED;
-			}
+			msg_feedback.array[1].type=sensor_msgs::JoyFeedback::TYPE_LED;
 		}
 	}
 	msg_feedback.array[2].type=sensor_msgs::JoyFeedback::TYPE_LED;

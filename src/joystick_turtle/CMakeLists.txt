@@ -128,6 +128,13 @@ add_executable(joystick_amibot_transmitter src/joystick_amibot_transmitter.cpp)
 target_link_libraries(joystick_amibot_transmitter ${catkin_LIBRARIES})
 add_dependencies(joystick_amibot_transmitter joystick_turtle_generate_messages_cpp)
 
+add_executable(block_servos src/block_servos.cpp ${SmartServoFramework_src})
+target_link_libraries(block_servos ${catkin_LIBRARIES})
+add_dependencies(block_servos joystick_turtle_generate_messages_cpp)
+
+add_executable(stop_servos src/stop_servos.cpp ${SmartServoFramework_src})
+target_link_libraries(stop_servos ${catkin_LIBRARIES})
+add_dependencies(stop_servos joystick_turtle_generate_messages_cpp)
 
 ## Declare a cpp library
 # add_library(DynamixelSimpleAPI

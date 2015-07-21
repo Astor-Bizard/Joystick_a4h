@@ -1,4 +1,4 @@
-./build/SmartServoFramework-master/stop_servos 1>/dev/null 2>/dev/null
+rosrun joystick_turtle stop_servos 1>/dev/null 2>/dev/null
 if [ $? -eq 1 ]
 then echo "
 	/!\\ Connection to the servos lost. Can't stop them... /!\\
