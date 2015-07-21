@@ -8,12 +8,15 @@
 
 // C++ standard library
 #include <iostream>
-#include <cmath>
 #define PI				3.14159
 
 /* ************************************************************************** */
 
 #define FORCE_MAX		1023
+
+#define DIST_DETECT_1	0.5
+#define DIST_DETECT_2	0.35
+#define DIST_DETECT_3	0.2
 
 // Macros for ROS
 #define LOOP_RATE		100
@@ -26,39 +29,70 @@
 
 sensor_msgs::JoyFeedbackArray msg_feedback;
 
-/*float min (const float tab[], const int i, const int j){
-	float minimum=tab[i];
-	for(int k=i+1;k<=j;k++){
-		if (tab[k]<minimum) minimum=tab[k];
-	}
-	return minimum;
-}*/
-
-void manage_obstacles (const sensor_msgs::LaserScan obstacles){
-	float minimum=obstacles.ranges[170];
-	int k_min=171;
-	for(int k=171;k<=190;k++){
-		if (obstacles.ranges[k]<minimum){
-			minimum=obstacles.ranges[k];
+float ind_min (const std::vector<float> tab, const int i, const int j){
+	float minimum=tab[std::min(i,j)];
+	int k_min=std::min(i,j);
+	for(int k=std::min(i,j)+1;k<=std::max(i,j);k++){
+		if (tab[k]<minimum){
+			minimum=tab[k];
 			k_min=k;
 		}
 	}
-	if (minimum<1){
+	return k_min;
+}
+
+void manage_obstacles (const sensor_msgs::LaserScan obstacles){
+	msg_feedback.array[0].id=ID_LIN_FOR;
+	msg_feedback.array[1].id=ID_LIN_BACK;
+	msg_feedback.array[2].id=ID_ANG_LEFT;
+	msg_feedback.array[3].id=ID_ANG_RIGHT;
+	float minimum=obstacles.ranges[ind_min(obstacles.ranges,170,190)];
+	if (minimum<DIST_DETECT_1){
 		msg_feedback.array[0].type=sensor_msgs::JoyFeedback::TYPE_RUMBLE;
-		msg_feedback.array[0].id=ID_LIN_FOR;
-		msg_feedback.array[0].intensity=float(FORCE_MAX)*(1.+obstacles.range_min-minimum);
+		msg_feedback.array[0].intensity=(1.0-((minimum-obstacles.range_min)/(DIST_DETECT_1-obstacles.range_min)))*float(FORCE_MAX);
 	}
 	else{
-		msg_feedback.array[0].type=sensor_msgs::JoyFeedback::TYPE_LED;
+		minimum=obstacles.ranges[ind_min(obstacles.ranges,145,215)];
+		if (minimum<DIST_DETECT_2){
+			msg_feedback.array[0].type=sensor_msgs::JoyFeedback::TYPE_RUMBLE;
+			msg_feedback.array[0].intensity=(1.0-((minimum-obstacles.range_min)/(DIST_DETECT_2-obstacles.range_min)))*float(FORCE_MAX);
+		}
+		else{
+			minimum=obstacles.ranges[ind_min(obstacles.ranges,120,240)];
+			if (minimum<DIST_DETECT_3){
+				msg_feedback.array[0].type=sensor_msgs::JoyFeedback::TYPE_RUMBLE;
+				msg_feedback.array[0].intensity=(1.0-((minimum-obstacles.range_min)/(DIST_DETECT_3-obstacles.range_min)))*float(FORCE_MAX);
+			}
+			else{
+				msg_feedback.array[0].type=sensor_msgs::JoyFeedback::TYPE_LED;
+			}
+		}
 	}
-	msg_feedback.array[1].type=sensor_msgs::JoyFeedback::TYPE_LED;
-	msg_feedback.array[1].id=ID_LIN_BACK;
-	msg_feedback.array[1].intensity=0.0;
+	minimum=std::min(obstacles.ranges[ind_min(obstacles.ranges,0,10)],obstacles.ranges[ind_min(obstacles.ranges,350,359)]);
+	if (minimum<DIST_DETECT_1){
+		msg_feedback.array[1].type=sensor_msgs::JoyFeedback::TYPE_RUMBLE;
+		msg_feedback.array[1].intensity=(1.0-((minimum-obstacles.range_min)/(DIST_DETECT_1-obstacles.range_min)))*float(FORCE_MAX);
+	}
+	else{
+		minimum=std::min(obstacles.ranges[ind_min(obstacles.ranges,0,35)],obstacles.ranges[ind_min(obstacles.ranges,325,359)]);
+		if (minimum<DIST_DETECT_2){
+			msg_feedback.array[1].type=sensor_msgs::JoyFeedback::TYPE_RUMBLE;
+			msg_feedback.array[1].intensity=(1.0-((minimum-obstacles.range_min)/(DIST_DETECT_2-obstacles.range_min)))*float(FORCE_MAX);
+		}
+		else{
+			minimum=std::min(obstacles.ranges[ind_min(obstacles.ranges,0,60)],obstacles.ranges[ind_min(obstacles.ranges,300,359)]);
+			if (minimum<DIST_DETECT_3){
+				msg_feedback.array[1].type=sensor_msgs::JoyFeedback::TYPE_RUMBLE;
+				msg_feedback.array[1].intensity=(1.0-((minimum-obstacles.range_min)/(DIST_DETECT_3-obstacles.range_min)))*float(FORCE_MAX);
+			}
+			else{
+				msg_feedback.array[1].type=sensor_msgs::JoyFeedback::TYPE_LED;
+			}
+		}
+	}
 	msg_feedback.array[2].type=sensor_msgs::JoyFeedback::TYPE_LED;
-	msg_feedback.array[2].id=ID_ANG_LEFT;
 	msg_feedback.array[2].intensity=0.0;
 	msg_feedback.array[3].type=sensor_msgs::JoyFeedback::TYPE_LED;
-	msg_feedback.array[3].id=ID_ANG_RIGHT;
 	msg_feedback.array[3].intensity=0.0;
 }
 

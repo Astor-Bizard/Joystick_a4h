@@ -15,7 +15,7 @@
 #define ID_LINEAR		10
 
 #define POS_INIT_LIN	1800
-#define POS_INIT_ANG	2047
+#define POS_INIT_ANG	2100
 
 #define NORMAL_SPEED	512
 #define HIGH_SPEED		1023
@@ -35,39 +35,37 @@
 
 /* ************************************************************************** */
 
-int max (const int a, const int b){if (a>b) return a; else return b;}
-int min (const int a, const int b){if (a<b) return a; else return b;}
-float max (const float a, const float b){if (a>b) return a; else return b;}
-float min (const float a, const float b){if (a<b) return a; else return b;}
-
 int limit (const int a, const int l1, const int l2){
-	return max(min(a,max(l1,l2)),min(l1,l2));
+	return std::max(std::min(a,std::max(l1,l2)),std::min(l1,l2));
 }
 
 float limit (const float a, const float l1, const float l2){
-	return max(min(a,max(l1,l2)),min(l1,l2));
+	return std::max(std::min(a,std::max(l1,l2)),std::min(l1,l2));
 }
 
 DynamixelSimpleAPI dxl;
+bool recieved_feedback;
 
 void block_linear (){
 	int pos_linear = dxl.readCurrentPosition(ID_LINEAR);
 	int diff_linear = abs(pos_linear-POS_INIT_LIN);
-	dxl.setTorqueLimit(ID_LINEAR,min(TORQUE_MAX,abs(diff_linear-BLOCK_DIST)*5+TORQUE_LINEAR));
+	dxl.setTorqueLimit(ID_LINEAR,std::min(TORQUE_MAX,abs(diff_linear-BLOCK_DIST)*5+TORQUE_LINEAR));
 }
 
 void block_angular (){
 	int pos_angular = dxl.readCurrentPosition(ID_ANGULAR);
 	int diff_angular = abs(pos_angular-POS_INIT_ANG);
-	dxl.setTorqueLimit(ID_ANGULAR,min(TORQUE_MAX,abs(diff_angular-BLOCK_DIST)*5+TORQUE_ANGULAR));
+	dxl.setTorqueLimit(ID_ANGULAR,std::min(TORQUE_MAX,abs(diff_angular-BLOCK_DIST)*5+TORQUE_ANGULAR));
 }
 
 void manage_feedback (const sensor_msgs::JoyFeedbackArray cmd){
+	recieved_feedback=true;
 	int pos_angular = dxl.readCurrentPosition(ID_ANGULAR);
 	int pos_linear = dxl.readCurrentPosition(ID_LINEAR);
 	int load_lin=dxl.readCurrentLoad(ID_LINEAR);
 	int load_ang;
-	int diff_angular, diff_linear;
+	int diff_linear = abs(pos_linear-POS_INIT_LIN);
+	int diff_angular = abs(pos_angular-POS_INIT_ANG);
 	if (cmd.array[0].type==sensor_msgs::JoyFeedback::TYPE_BUZZER){
 		dxl.setTorqueLimit(ID_LINEAR,cmd.array[0].intensity);
 		if (load_lin > 1023){
@@ -84,44 +82,37 @@ void manage_feedback (const sensor_msgs::JoyFeedbackArray cmd){
 		}
 		dxl.setGoalSpeed(ID_LINEAR,NORMAL_SPEED);
 	}
-
-	else if (cmd.array[0].type==sensor_msgs::JoyFeedback::TYPE_RUMBLE){
+	else{
 		load_lin=dxl.readCurrentLoad(ID_LINEAR);
 		load_ang=dxl.readCurrentLoad(ID_ANGULAR);
-		diff_linear = abs(pos_linear-POS_INIT_LIN);
-		diff_angular = abs(pos_angular-POS_INIT_ANG);
 		for (int i=0;i<4;i++){
 			switch (cmd.array[i].id){
 				case ID_LIN_FOR:
-					if (diff_linear > BLOCK_DIST){
-						block_linear();
-					}
+					if (diff_linear >= BLOCK_DIST) block_linear();
 					else if (load_lin<=1023){
-						dxl.setTorqueLimit(ID_LINEAR,limit(int(cmd.array[i].intensity),TORQUE_MAX,TORQUE_LINEAR));
+						if (cmd.array[i].type==sensor_msgs::JoyFeedback::TYPE_LED) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
+						else dxl.setTorqueLimit(ID_LINEAR,limit(int(cmd.array[i].intensity),TORQUE_MAX,TORQUE_LINEAR));
 					}
 					break;
 				case ID_LIN_BACK:
-					if (diff_linear > BLOCK_DIST){
-						block_linear();
-					}
+					if (diff_linear >= BLOCK_DIST) block_linear();
 					else if (load_lin>1023){
-						dxl.setTorqueLimit(ID_LINEAR,limit(int(cmd.array[i].intensity),TORQUE_MAX,TORQUE_LINEAR));
+						if (cmd.array[i].type==sensor_msgs::JoyFeedback::TYPE_LED) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
+						else dxl.setTorqueLimit(ID_LINEAR,limit(int(cmd.array[i].intensity),TORQUE_MAX,TORQUE_LINEAR));
 					}
 					break;
 				case ID_ANG_LEFT:
-					if (diff_angular > BLOCK_DIST){
-						block_angular();
-					}
+					if (diff_angular >= BLOCK_DIST) block_angular();
 					else if (load_ang<=1023){
-						dxl.setTorqueLimit(ID_ANGULAR,limit(int(cmd.array[i].intensity),TORQUE_MAX,TORQUE_ANGULAR));
+						if (cmd.array[i].type==sensor_msgs::JoyFeedback::TYPE_LED) dxl.setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR);
+						else dxl.setTorqueLimit(ID_ANGULAR,limit(int(cmd.array[i].intensity),TORQUE_MAX,TORQUE_ANGULAR));
 					}
 					break;
 				case ID_ANG_RIGHT:
-					if (diff_angular > BLOCK_DIST){
-						block_angular();
-					}
+					if (diff_angular >= BLOCK_DIST) block_angular();
 					else if (load_ang>1023){
-						dxl.setTorqueLimit(ID_ANGULAR,limit(int(cmd.array[i].intensity),TORQUE_MAX,TORQUE_ANGULAR));
+						if (cmd.array[i].type==sensor_msgs::JoyFeedback::TYPE_LED) dxl.setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR);
+						else dxl.setTorqueLimit(ID_ANGULAR,limit(int(cmd.array[i].intensity),TORQUE_MAX,TORQUE_ANGULAR));
 					}
 					break;
 				default:
@@ -130,7 +121,6 @@ void manage_feedback (const sensor_msgs::JoyFeedbackArray cmd){
 			}
 		}
 	}
-
 }
 
 int main(int argc, char *argv[])
@@ -152,6 +142,7 @@ int main(int argc, char *argv[])
     int pos_angular,pos_linear;
     int torque_angular,torque_linear;
 	int diff_angular,diff_linear;
+	recieved_feedback=false;
     dxl.setTorqueEnabled(ID_ANGULAR,1);
     dxl.setTorqueEnabled(ID_LINEAR,1);
     dxl.setMaxTorque(ID_ANGULAR,TORQUE_MAX);
@@ -190,12 +181,13 @@ int main(int argc, char *argv[])
 		dxl.setGoalPosition(ID_LINEAR,POS_INIT_LIN,NORMAL_SPEED);
 
 		diff_angular = abs(pos_angular-POS_INIT_ANG);
-		if (diff_angular < BLOCK_DIST) dxl.setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR);
-		else block_angular();
-
 		diff_linear = abs(pos_linear-POS_INIT_LIN);
-		if (diff_linear < BLOCK_DIST) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
-		else block_linear();
+		if (!recieved_feedback){
+			if (diff_angular < BLOCK_DIST) dxl.setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR);
+			else block_angular();
+			if (diff_linear < BLOCK_DIST) dxl.setTorqueLimit(ID_LINEAR,TORQUE_LINEAR);
+			else block_linear();
+		}
 
 		// Return axes position in [-1,1]
 		if (diff_linear<STEP) pos_linear=POS_INIT_LIN;
@@ -207,15 +199,14 @@ int main(int argc, char *argv[])
 
 		pose.header.seq=i;
 		i++;
-		
-		pose.header.stamp=ros::Time::now();
 
+		pose.header.stamp=ros::Time::now();
+		recieved_feedback=false;
 		joy_pub.publish(pose);
 		ros::spinOnce();
-		std::cout << "Current torque (lin) : " << dxl.getTorqueLimit(ID_LINEAR) << " ; Current torque (ang) : " << dxl.getTorqueLimit(ID_ANGULAR) << std::endl;
 		loop_rate.sleep();
 	}
-
+	std::cout << "\r  \n";
     // Close device(s)
     dxl.setTorqueEnabled(ID_ANGULAR,0);
     dxl.setTorqueEnabled(ID_LINEAR,0);
