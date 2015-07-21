@@ -66,6 +66,6 @@ Joystick_a4h is free software; you can redistribute it and/or modify it under th
 Please read the Joystick_a4h/src/rplidar_ros/LICENSE
 
 Copyright (c) 2015, INRIA, All rights reserved.  
-Astor Bizard <astord.bizard@inria.fr>
+Astor Bizard <astord.bizard@inria.fr>  
 Emeric Grange <emeric.grange@gmail.com>  
 Dominique Vaufreydaz <dominique.vaufreydaz@inria.fr>  
