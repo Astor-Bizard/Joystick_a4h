@@ -63,6 +63,8 @@ Here is a link to [SmartServoFramework](https://github.com/emericg/SmartServoFra
 Joystick_a4h is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
 [Consult the licence on the FSF website](http://www.gnu.org/licenses/lgpl-3.0.txt).
 
+Please read the Joystick_a4h/src/rplidar_ros/LICENSE
+
 Copyright (c) 2015, INRIA, All rights reserved.  
 Astor Bizard <astord.bizard@inria.fr>
 Emeric Grange <emeric.grange@gmail.com>  
