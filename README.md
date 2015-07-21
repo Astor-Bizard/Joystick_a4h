@@ -21,7 +21,7 @@ To build and execute the programs, you will need [ROS](http://www.ros.org/instal
 
 You will also need to update your .bashrc so ROS can find your packages :
 > $ cd ~/  
-> $ echo "source /<path>/Joystick_a4h/devel/setup.bash" >> .bashrc  
+> $ echo "source Joystick_a4h/devel/setup.bash" >> .bashrc  
 
 ## Given scripts :
 
@@ -30,21 +30,24 @@ You will also need to update your .bashrc so ROS can find your packages :
 To test the joystick on the Turtlesim module from ROS :
 * init_roscore: It will open a new terminal, and run roscore. It is necessary for ROS to run other programs.
 * init_teleop_turtle: It will open several new terminals, and a turtle simulator. You can then move the turtle with the joystick.  
-> $ ./init_roscore.sh			} Run these in  
-> $ ./init_teleop_turtle.sh		} the same terminal  
+> # Run these two commands in the same terminal  
+> $ ./init_roscore.sh  
+> $ ./init_teleop_turtle.sh  
+Please take care to wait roscore is completely initialized before running the teleop, unless you may experience crash issues.
 
 To drive Amibot :
 * launch_rviz_amibot: It will open a new terminal and a window, where you will see the scanning of the robot. Until ROSBridge isn't used in this module, you will need to be connected at the same network than the robot (A4H_smart_home).
 * init_teleop_turtle: It will open several new terminals. You can then move the robot with the joystick.  
-> $ ./launch_rviz_amibot.sh		} Run these in  
-> $ ./init_teleop_amibot.sh		} the same terminal  
+> # Run these two commands in the same terminal  
+> $ ./launch_rviz_amibot.sh  
+> $ ./init_teleop_amibot.sh  
 Please take care to wait rviz is completely initialized before running the teleop, unless you may experience crash issues.
 
 ## Get involved!
 
 ### Users
 
-You can help us finding bugs, proposing new functionalities and more directly on this website! Click on the "New issue" button in the menu to do that.
+You can help us finding bugs, proposing new functionalities and more directly on this website ! Click on the "New issue" button in the menu to do that.
 
 ### Developers
 
