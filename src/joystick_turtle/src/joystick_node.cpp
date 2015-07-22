@@ -119,13 +119,10 @@ void manage_feedback (const sensor_msgs::JoyFeedbackArray cmd){
 
 int main(int argc, char *argv[])
 {
-    // Initialize a Dynamixel "Simple API" instance
-    //DynamixelSimpleAPI dxl;
-
     // Initialize a serial link for the SimpleAPI
     // You can specify the serial port path directly if you know it. Ex: "/dev/ttyUSB0" for a Linux system; "//./COM1" for a Windows system.
     // Note: serial port "auto-detection" will only work if a single serial port adapter is connected to your computer, or if the fisrt one detected is the one connected to your devices.
-    std::string deviceName = "/dev/ttyUSB0";
+    std::string deviceName = "auto";
     if (dxl.connect(deviceName, 1) == 0)
     {
         std::cerr << "> Failed to open a serial link for our SimpleAPI! Exiting..." << std::endl;
