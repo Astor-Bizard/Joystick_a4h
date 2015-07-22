@@ -12,7 +12,7 @@
 /* ************************************************************************** */
 
 // Macros for ROS
-#define LOOP_RATE		100
+#define LOOP_RATE		100		// Send messages at a rate of 100 Hz
 #define PUB_QUEUE_SIZE	10
 #define SUB_QUEUE_SIZE	10
 
@@ -23,8 +23,8 @@
 geometry_msgs::Twist msg_vel;
 
 void transmit_cmd (const sensor_msgs::Joy position){
-	msg_vel.linear.x=float(position.axes[1])*-0.5;
-	msg_vel.angular.z=float(position.axes[3])*1.5;
+	msg_vel.linear.x=float(position.axes[0])*-0.5;
+	msg_vel.angular.z=float(position.axes[1])*1.5;
 	if (position.header.seq % 500 == 0) std::cout << "Recieved the " << position.header.seq << "th packet sent by the joystick !\n";
 }
 

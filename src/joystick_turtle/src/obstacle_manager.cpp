@@ -12,16 +12,15 @@
 
 /* ************************************************************************** */
 
-#define FORCE_MAX		1023
+#define FORCE_MAX		1023	// Maximum feedback intensity
 
-#define DIST_DETECT_1	0.5
-#define DIST_DETECT_2	0.35
-#define DIST_DETECT_3	0.2
+#define DIST_DETECT_1	0.5		// Detect obstacles in front of the robot up to 50cm
+#define DIST_DETECT_2	0.35	// Detect obstacles on the sides of the robot up to 35cm
 
 // Macros for ROS
-#define LOOP_RATE		100
-#define PUB_QUEUE_SIZE	1
-#define SUB_QUEUE_SIZE	1
+#define LOOP_RATE		100		// Send messages at a rate of 100 Hz
+#define PUB_QUEUE_SIZE	10
+#define SUB_QUEUE_SIZE	10
 
 #define DEF_TURTLE_NAME	"amibot"
 
@@ -84,10 +83,8 @@ void manage_obstacles (const sensor_msgs::LaserScan obstacles){
 
 int main(int argc, char *argv[])
 {
-    std::cout << std::endl << "================== Joystick teleoperating module on Turtlesim ==================" << std::endl << std::endl;
+    std::cout << std::endl << "======================== Joystick teleoperating module =========================" << std::endl << std::endl;
     std::cout << std::endl << std::endl << "============================== [OBSTACLE MANAGER] ==============================" << std::endl;
-
-    std::cout << std::endl << "> Move the turtle with the joystick !" << std::endl;
 
 	ros::init(argc, argv, "obstacle_manager");
 	ros::NodeHandle n;

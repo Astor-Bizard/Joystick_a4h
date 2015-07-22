@@ -3,14 +3,16 @@ Joystick teleoperating module on Amibot with obstacles detection and feedback
 
 ## Introduction
 
-
+<TODO>
 
 ## Prerequisites
 
 ### ROS
-To build and execute the programs, you will need [ROS](http://www.ros.org/install/) installed, version hydro, indigo or jade. (For earlier versions, changes in code will be needed).
+To build and execute the programs, you will need [ROS](http://www.ros.org/install/) installed (version indigo will be pretty nice, hydro or jade should work. For earlier versions, changes in code will be needed).
 
 ### Joystick
+
+<TODO>
 
 ## Building the module
 
@@ -21,6 +23,7 @@ To build and execute the programs, you will need [ROS](http://www.ros.org/instal
 
 You will also need to update your .bashrc so ROS can find your packages :
 > $ cd ~/  
+> $ echo "source /opt/ros/\<indigo-hydro-jade-...>/setup.bash" >> .bashrc  
 > $ echo "source Joystick_a4h/devel/setup.bash" >> .bashrc  
 
 ## Given scripts :
@@ -38,8 +41,8 @@ To test the joystick on the Turtlesim module from ROS :
 Please take care to wait roscore is completely initialized before running the teleop, unless you may experience crash issues.
 
 To drive Amibot :
-* launch_rviz_amibot: It will open a new terminal and a window, where you will see the scanning of the robot. Until ROSBridge isn't used in this module, you will need to be connected at the same network than the robot (A4H_smart_home).
-* init_teleop_turtle: It will open several new terminals. You can then move the robot with the joystick.  
+* launch_rviz_amibot: It will open a new terminal and a window, where you will see the scanning of the robot. Until ROSbridge isn't used in this module, you will need to be connected at the same network than the robot (A4H_smart_home).
+* init_teleop_amibot: It will open several new terminals. You can then move the robot with the joystick.  
 
 > Run these two commands in the same terminal  
 > $ ./launch_rviz_amibot.sh  
@@ -47,7 +50,11 @@ To drive Amibot :
 
 Please take care to wait rviz is completely initialized before running the teleop, unless you may experience crash issues.
 
-## Get involved!
+## Possible issues
+Since this project is still experimental, you may experience some connection issues between PC and robot. Try then modifying ROS_IP in scripts of amibot.
+Don't forget to modify ~/.bashrc unless the package won't be found.
+
+## Get involved !
 
 ### Users
 
@@ -56,7 +63,7 @@ You can help us finding bugs, proposing new functionalities and more directly on
 ### Developers
 
 You can browse the git repository here on GitHub, submit patches and push requests!  
-Here is a link to [SmartServoFramework](https://github.com/emericg/SmartServoFramework) from Emeric Grange ( <emeric.grange@gmail.com> ) that is used in this project.
+[Here](https://github.com/emericg/SmartServoFramework) is a link to [SmartServoFramework](https://github.com/emericg/SmartServoFramework) from Emeric Grange ( <emeric.grange@gmail.com> ) that is used in this project.
 
 ## Licensing
 
