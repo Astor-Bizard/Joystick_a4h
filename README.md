@@ -52,6 +52,9 @@ To drive Amibot :
 
 Please take care to wait rviz is completely initialized before running the teleop, unless you may experience crash issues.
 
+## Nodes and Topics
+![NODES](http://i.imgur.com/wVb8Q3M.png)
+
 ## Possible issues
 Since this project is still experimental, you may experience some connection issues between PC and robot. Try then modifying ROS_IP in scripts of amibot.  
 Don't forget to modify ~/.bashrc unless the package won't be found.
