@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 	else scan_sub = n.subscribe<sensor_msgs::LaserScan>("/"+std::string(DEF_BOT_NAME)+"/scan", SUB_QUEUE_SIZE, boost::bind(manage_obstacles, _1, &msg_feedback));
 
 
-	std::cout << "Obstacle manager ready." << std::endl;
+	std::cout << std::endl << "> Obstacle manager ready." << std::endl;
 
     // Run main loop
     while (ros::ok()){

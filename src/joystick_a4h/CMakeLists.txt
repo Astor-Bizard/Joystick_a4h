@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(joystick_turtle)
+project(joystick_a4h)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -100,21 +100,17 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-#add_executable(tmp src/tmp.cpp)
-#target_link_libraries(tmp ${catkin_LIBRARIES})
-#add_dependencies(tmp joystick_turtle_generate_messages_cpp)
-
 set(SmartServoFramework_src src/SmartServoFramework-master/src/SerialPort.cpp src/SmartServoFramework-master/src/SerialPortLinux.cpp src/SmartServoFramework-master/src/SerialPortMacOS.cpp src/SmartServoFramework-master/src/SerialPortWindows.cpp src/SmartServoFramework-master/src/ControlTables.cpp src/SmartServoFramework-master/src/Utils.cpp src/SmartServoFramework-master/src/ControllerAPI.cpp src/SmartServoFramework-master/src/Servo.cpp src/SmartServoFramework-master/src/Dynamixel.cpp src/SmartServoFramework-master/src/DynamixelTools.cpp src/SmartServoFramework-master/src/DynamixelSimpleAPI.cpp src/SmartServoFramework-master/src/DynamixelController.cpp src/SmartServoFramework-master/src/ServoDynamixel.cpp src/SmartServoFramework-master/src/ServoAX.cpp src/SmartServoFramework-master/src/ServoEX.cpp src/SmartServoFramework-master/src/ServoMX.cpp src/SmartServoFramework-master/src/ServoXL.cpp src/SmartServoFramework-master/src/HerkuleX.cpp src/SmartServoFramework-master/src/HerkuleXTools.cpp src/SmartServoFramework-master/src/HerkuleXSimpleAPI.cpp src/SmartServoFramework-master/src/HerkuleXController.cpp src/SmartServoFramework-master/src/ServoHerkuleX.cpp src/SmartServoFramework-master/src/ServoDRS.cpp)
 
 add_executable(turtlesim_teleop_joystick src/turtlesim_teleop_joystick.cpp ${SmartServoFramework_src})
 target_link_libraries(turtlesim_teleop_joystick ${catkin_LIBRARIES})
-add_dependencies(turtlesim_teleop_joystick joystick_turtle_generate_messages_cpp)
+add_dependencies(turtlesim_teleop_joystick joystick_a4h_generate_messages_cpp)
 
 
 
 add_executable(joystick_node src/joystick_node.cpp ${SmartServoFramework_src})
 target_link_libraries(joystick_node ${catkin_LIBRARIES})
-add_dependencies(joystick_node joystick_turtle_generate_messages_cpp)
+add_dependencies(joystick_node joystick_a4h_generate_messages_cpp)
 
 add_executable(joystick_turtlesim_server src/joystick_turtlesim_server.cpp)
 target_link_libraries(joystick_turtlesim_server ${catkin_LIBRARIES})
@@ -122,19 +118,19 @@ add_dependencies(joystick_turtlesim_server joystick_turtle_generate_messages_cpp
 
 add_executable(obstacle_manager src/obstacle_manager.cpp)
 target_link_libraries(obstacle_manager ${catkin_LIBRARIES})
-add_dependencies(obstacle_manager joystick_turtle_generate_messages_cpp)
+add_dependencies(obstacle_manager joystick_a4h_generate_messages_cpp)
 
 add_executable(joystick_amibot_transmitter src/joystick_amibot_transmitter.cpp)
 target_link_libraries(joystick_amibot_transmitter ${catkin_LIBRARIES})
-add_dependencies(joystick_amibot_transmitter joystick_turtle_generate_messages_cpp)
+add_dependencies(joystick_amibot_transmitter joystick_a4h_generate_messages_cpp)
 
 add_executable(block_servos src/block_servos.cpp ${SmartServoFramework_src})
 target_link_libraries(block_servos ${catkin_LIBRARIES})
-add_dependencies(block_servos joystick_turtle_generate_messages_cpp)
+add_dependencies(block_servos joystick_a4h_generate_messages_cpp)
 
 add_executable(stop_servos src/stop_servos.cpp ${SmartServoFramework_src})
 target_link_libraries(stop_servos ${catkin_LIBRARIES})
-add_dependencies(stop_servos joystick_turtle_generate_messages_cpp)
+add_dependencies(stop_servos joystick_a4h_generate_messages_cpp)
 
 ## Declare a cpp library
 # add_library(DynamixelSimpleAPI
@@ -142,14 +138,14 @@ add_dependencies(stop_servos joystick_turtle_generate_messages_cpp)
 # )
 
 ## Declare a cpp executable
-# add_executable(joystick_turtle_node src/joystick_turtle_node.cpp)
+# add_executable(joystick_a4h_node src/joystick_a4h_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(joystick_turtle_node joystick_turtle_generate_messages_cpp)
+# add_dependencies(joystick_a4h_node joystick_a4h_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(joystick_turtle_node
+# target_link_libraries(joystick_a4h_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -168,7 +164,7 @@ add_dependencies(stop_servos joystick_turtle_generate_messages_cpp)
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS joystick_turtle joystick_turtle_node
+# install(TARGETS joystick_a4h joystick_a4h_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -193,7 +189,7 @@ add_dependencies(stop_servos joystick_turtle_generate_messages_cpp)
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_joystick_turtle.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_joystick_a4h.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

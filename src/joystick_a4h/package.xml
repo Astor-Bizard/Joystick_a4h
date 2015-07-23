@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>joystick_turtle</name>
+  <name>joystick_a4h</name>
   <version>0.0.0</version>
-  <description>The joystick_turtle package</description>
+  <description>The joystick_a4h package</description>
 
   <maintainer email="astord.bizard@inria.fr">Astor Bizard</maintainer>
   <license>BSD</license>
