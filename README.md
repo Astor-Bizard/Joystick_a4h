@@ -59,9 +59,11 @@ Please take care to wait rviz is completely initialized before running the teleo
 Since this project is still experimental, you may experience some connection issues between PC and robot. Try then modifying ROS_IP in scripts of amibot.  
 Don't forget to modify ~/.bashrc unless the package won't be found.
 
-The servos IDs are default 1 and 10. If your servos have different IDs, modify it in src/joystick_turtle/joystick_node.cpp.
+The servos IDs are default 1 and 10. If your servos have different IDs, modify it in src/joystick_a4h/joystick_node.cpp.
 
-If for some reasons you experience issues while using serial link with your USB ports, modify in src/joystick_turtle/joystick_node.cpp the name of the port you are using for serial link.
+##### If you want a direction correction feedback, go in the src/joystick_a4h/obstacle_manager.cpp and comment/uncomment what is specified.
+
+If for some reasons you experience issues while using serial link with your USB ports, modify in src/joystick_a4h/joystick_node.cpp the name of the port you are using for serial link.
 
 ## Get involved !
 

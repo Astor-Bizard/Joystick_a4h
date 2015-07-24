@@ -35,8 +35,10 @@
 #define TORQUE_MAX		1023
 #define BLOCK_DIST		512
 
+#define FCT_INTENSITY	0.3		// Factor for direction correction : Joystick_correction=recieved_intensity*FCT_INTENSITY
+
 // Macros for ROS
-#define LOOP_RATE		100		// Send messages at a rate of 100 Hz
+#define LOOP_RATE		1000	// Send messages at a rate of 1000 Hz
 #define PUB_QUEUE_SIZE	10
 #define SUB_QUEUE_SIZE	10
 
@@ -68,6 +70,7 @@ void manage_feedback (const sensor_msgs::JoyFeedbackArray::ConstPtr& cmd, Dynami
 	*recieved_feedback=true;
 	const int load_lin = dxl->readCurrentLoad(ID_LINEAR);
 	const int load_ang = dxl->readCurrentLoad(ID_ANGULAR);
+	bool obstacles_on_right=false, obstacles_on_left=false;
 	if (cmd->array[0].type==sensor_msgs::JoyFeedback::TYPE_BUZZER){
 		// Force the joystick to move quickly
 		dxl->setTorqueLimit(ID_LINEAR,cmd->array[0].intensity);
@@ -105,22 +108,34 @@ void manage_feedback (const sensor_msgs::JoyFeedbackArray::ConstPtr& cmd, Dynami
 					break;
 				case ID_ANG_LEFT:
 					if (*diff_angular >= BLOCK_DIST) block_servo(ID_ANGULAR,*diff_angular,dxl);
-					else if (load_ang<=1023){	// Only apply resistance if user is trying to move it
-						if (cmd->array[i].type==sensor_msgs::JoyFeedback::TYPE_LED) dxl->setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR);
-						else dxl->setTorqueLimit(ID_ANGULAR,limit(int(cmd->array[i].intensity),TORQUE_MAX,TORQUE_ANGULAR));
+					else{
+						float intensity=cmd->array[i].intensity*float(FCT_INTENSITY);
+						if (cmd->array[i].type==sensor_msgs::JoyFeedback::TYPE_RUMBLE && intensity>=STEP_ANG){
+							dxl->setGoalPosition(ID_ANGULAR,POS_INIT_ANG-std::min(intensity,float(BLOCK_DIST)));
+							dxl->setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR*1.5);
+							obstacles_on_left=true;
+						}
 					}
 					break;
 				case ID_ANG_RIGHT:
 					if (*diff_angular >= BLOCK_DIST) block_servo(ID_ANGULAR,*diff_angular,dxl);
-					else if (load_ang>1023){	// Only apply resistance if user is trying to move it
-						if (cmd->array[i].type==sensor_msgs::JoyFeedback::TYPE_LED) dxl->setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR);
-						else dxl->setTorqueLimit(ID_ANGULAR,limit(int(cmd->array[i].intensity),TORQUE_MAX,TORQUE_ANGULAR));
+					else{
+						float intensity=cmd->array[i].intensity*float(FCT_INTENSITY);
+						if (cmd->array[i].type==sensor_msgs::JoyFeedback::TYPE_RUMBLE && intensity>=STEP_ANG){
+							dxl->setGoalPosition(ID_ANGULAR,POS_INIT_ANG+std::min(intensity,float(BLOCK_DIST)));
+							dxl->setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR*1.5);
+							obstacles_on_right=true;
+						}
 					}
 					break;
 				default:
 					std::cerr << "Some data are unreadable ! (ID : " << cmd->array[i].id << ")" << std::endl;
 					break;
 			}
+		}
+		if (!obstacles_on_right && !obstacles_on_left){
+			if (dxl->getGoalPosition(ID_ANGULAR)!=POS_INIT_ANG) dxl->setGoalPosition(ID_ANGULAR,POS_INIT_ANG);
+			if (*diff_angular < BLOCK_DIST) dxl->setTorqueLimit(ID_ANGULAR,TORQUE_ANGULAR);
 		}
 	}
 }
@@ -179,6 +194,7 @@ int main(int argc, char *argv[])
 	dxl.setSetting(ID_ANGULAR,REG_D_GAIN,D_GAIN_ANG,REGISTER_RAM,SERVO_MX12W);
 
 
+
 	// ROS initialization
 	ros::init(argc, argv, "joystick_node");
   	ros::NodeHandle n;
@@ -188,7 +204,6 @@ int main(int argc, char *argv[])
 
   	ros::Rate loop_rate(LOOP_RATE);
 	int seq=1;	// seq number for sending messages
-	
 
 	std::cout << std::endl << "> Joystick ready." << std::endl;
 

@@ -31,9 +31,9 @@ int main(int argc, char *argv[])
     std::cout << std::endl << "==================== Command Transmitter Joystick -> Amibot ====================" << std::endl << std::endl;
     std::cout << std::endl << std::endl << "================================ [TRANSMITTER] =================================" << std::endl;
 
-
 	// ROS initialization
 	ros::init(argc, argv, "joystick_amibot_transmitter");
+
 	ros::NodeHandle n;
 	ros::Publisher cmd_vel_pub;
 	geometry_msgs::Twist msg_vel;
@@ -47,8 +47,8 @@ int main(int argc, char *argv[])
 	}
 
 	ros::Subscriber joystick_position_sub = n.subscribe<sensor_msgs::Joy>(std::string(JOYSTICK_TOPIC), SUB_QUEUE_SIZE, boost::bind(transmit_cmd, _1, &msg_vel));
-  	ros::Rate loop_rate(LOOP_RATE);
 
+  	ros::Rate loop_rate(LOOP_RATE);
 
     std::cout << std::endl << "> Move the robot with the joystick !" << std::endl;
 

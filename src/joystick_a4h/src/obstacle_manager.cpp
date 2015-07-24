@@ -14,11 +14,11 @@
 
 #define FORCE_MAX		1023	// Maximum feedback intensity
 
-#define DIST_DETECT_1	0.5		// Detect obstacles in front of the robot up to 50cm
+#define DIST_DETECT_1	0.6		// Detect obstacles in front of the robot up to 60cm
 #define DIST_DETECT_2	0.35	// Detect obstacles on the sides of the robot up to 35cm
 
 // Macros for ROS
-#define LOOP_RATE		100		// Send messages at a rate of 100 Hz
+#define LOOP_RATE		1000	// Send messages at a rate of 1000 Hz
 #define PUB_QUEUE_SIZE	10
 #define SUB_QUEUE_SIZE	10
 
@@ -52,7 +52,6 @@ void manage_obstacles (const sensor_msgs::LaserScan::ConstPtr& obstacles, sensor
 	msg_feedback->array[1].id=ID_LIN_BACK;
 	msg_feedback->array[2].id=ID_ANG_LEFT;
 	msg_feedback->array[3].id=ID_ANG_RIGHT;
-
 	// First search obstacles right in front of the robot
 	float minimum=obstacles->ranges[ind_min(obstacles->ranges,170,190)];
 	if (minimum<DIST_DETECT_1){
@@ -68,6 +67,7 @@ void manage_obstacles (const sensor_msgs::LaserScan::ConstPtr& obstacles, sensor
 		}
 		else{
 			msg_feedback->array[0].type=sensor_msgs::JoyFeedback::TYPE_LED;
+			msg_feedback->array[0].intensity=0.0;
 		}
 	}
 
@@ -86,13 +86,43 @@ void manage_obstacles (const sensor_msgs::LaserScan::ConstPtr& obstacles, sensor
 		}
 		else{
 			msg_feedback->array[1].type=sensor_msgs::JoyFeedback::TYPE_LED;
+			msg_feedback->array[1].intensity=0.0;
 		}
 	}
-	// Feedback on turning servo not implemented yet ##TODO##
+
+	//###### Comment this if you want a direction correction ######
 	msg_feedback->array[2].type=sensor_msgs::JoyFeedback::TYPE_LED;
 	msg_feedback->array[2].intensity=0.0;
 	msg_feedback->array[3].type=sensor_msgs::JoyFeedback::TYPE_LED;
 	msg_feedback->array[3].intensity=0.0;
+
+	//###### Uncomment this if you want a direction correction ######
+	/*
+	int i_min_left = ind_min(obstacles->ranges,190,215);
+	float minimum_left = obstacles->ranges[i_min_left];
+	int i_min_right = ind_min(obstacles->ranges,145,170);
+	float minimum_right = obstacles->ranges[i_min_right];
+	if (std::min(minimum_left,minimum_right)<DIST_DETECT_2){
+		if (minimum_left<minimum_right){
+			msg_feedback->array[2].type=sensor_msgs::JoyFeedback::TYPE_RUMBLE;
+			msg_feedback->array[2].intensity=calc_intensity(minimum_left,DIST_DETECT_2,obstacles->range_min)-calc_intensity(std::min(minimum_right,float(DIST_DETECT_2)),DIST_DETECT_2,obstacles->range_min);
+			msg_feedback->array[3].type=sensor_msgs::JoyFeedback::TYPE_LED;
+			msg_feedback->array[3].intensity=0.0;
+		}
+		else{
+			msg_feedback->array[3].type=sensor_msgs::JoyFeedback::TYPE_RUMBLE;
+			msg_feedback->array[3].intensity=calc_intensity(minimum_right,DIST_DETECT_2,obstacles->range_min)-calc_intensity(std::min(minimum_left,float(DIST_DETECT_2)),DIST_DETECT_2,obstacles->range_min);
+			msg_feedback->array[2].type=sensor_msgs::JoyFeedback::TYPE_LED;
+			msg_feedback->array[2].intensity=0.0;
+		}
+	}
+	else{
+		msg_feedback->array[2].type=sensor_msgs::JoyFeedback::TYPE_LED;
+		msg_feedback->array[2].intensity=0.0;
+		msg_feedback->array[3].type=sensor_msgs::JoyFeedback::TYPE_LED;
+		msg_feedback->array[3].intensity=0.0;
+	}
+	*/
 }
 
 int main(int argc, char *argv[])
@@ -100,7 +130,6 @@ int main(int argc, char *argv[])
     std::cout << std::endl << "======================== Joystick teleoperating module =========================" << std::endl << std::endl;
     std::cout << std::endl << std::endl << "============================== [OBSTACLE MANAGER] ==============================" << std::endl;
 
-	
 	sensor_msgs::JoyFeedbackArray msg_feedback;
 	// Init array
 	sensor_msgs::JoyFeedback tmp;
@@ -108,7 +137,6 @@ int main(int argc, char *argv[])
 	tmp.type=sensor_msgs::JoyFeedback::TYPE_LED;
 	tmp.intensity=0.0;
 	msg_feedback.array.push_back(tmp);msg_feedback.array.push_back(tmp);msg_feedback.array.push_back(tmp);msg_feedback.array.push_back(tmp);
-
 
 	// ROS initialization
 	ros::init(argc, argv, "obstacle_manager");
